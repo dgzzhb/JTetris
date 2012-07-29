@@ -1,12 +1,7 @@
+import us.tzheng.JTetris.JTFrame;
 
 public class JTetris {
-
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		JTFrame frame = new JTFrame();
 	}
-
 }
