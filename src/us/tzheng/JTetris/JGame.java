@@ -1,5 +1,8 @@
 package us.tzheng.JTetris;
 
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
@@ -13,7 +16,7 @@ public class JGame extends JPanel implements KeyListener {
 	private int cubeTurn;
 	private int x;
 	private int y;
-	private int[][] panel = new int[12][23];
+	private int[][] panel = new int[23][12];
 	private int score;
     private final int shape[][][] = new int[][][] {
     	// i
@@ -61,21 +64,21 @@ public class JGame extends JPanel implements KeyListener {
 	}
 	// Initial Panel
 	private void newPanel() {
-		for (int i = 0; i < 12; i++) {
-			for (int j = 0; j < 23; j++) {
+		for (int i = 0; i < 23; i++) {
+			for (int j = 0; j < 12; j++) {
 				panel[i][j] = 0;
 			}
 		}
 	}
 	// Draw Boarder of Panel
 	private void drawBoarder() {
-		for (int i = 0; i < 12; i++) {
-			panel[i][22] = 2;
+		for (int i = 0; i < 23; i++) {
+			panel[i][0] = 2;
+			panel[i][11] = 2;
 		}
 		
-		for (int j = 0; j < 22; j++) {
-			panel[0][j] = 2;
-			panel[11][j] = 2;
+		for (int j = 0; j < 12; j++) {
+			panel [22][j] = 2;
 		}
 	}
 	// Create new cube
@@ -104,8 +107,8 @@ public class JGame extends JPanel implements KeyListener {
 	private int legal(int x, int y, int cubeType, int cubeTurn) {
 		for (int i = 0; i <4; i++) {
 			for (int j = 0; j<4; j++) {
-				if (((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + j + 1][y + i] == 1))
-						||((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + j + 1][y + i] == 2))) {
+				if (((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + i][y + j + 1] == 1))
+						||((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + i][y + j + 1] == 2))) {
 					return 0;
 				}
 			}
@@ -114,17 +117,130 @@ public class JGame extends JPanel implements KeyListener {
 	}
 
 	@Override
-	public void keyPressed(KeyEvent arg0) {
-		// TODO Auto-generated method stub
-		
+	public void keyPressed(KeyEvent event) {
+		switch (event.getKeyCode()) {
+		case KeyEvent.VK_UP:
+			turn();
+			break;
+		case KeyEvent.VK_DOWN:
+			down();
+			break;
+		case KeyEvent.VK_LEFT:
+			left();
+			break;
+		case KeyEvent.VK_RIGHT:
+			right();
+			break;
+		}
 	}
 
+	private void turn() {
+		int turnFlag = cubeTurn;
+		cubeTurn = (cubeTurn + 1) % 4;
+		if (legal(x,y,cubeType,cubeTurn) == 0) {
+			cubeTurn = turnFlag;
+		}
+		repaint();
+	}
+	private void down() {
+		if (legal(x,y+1,cubeType,cubeTurn) == 1) {
+			y = y + 1;
+			delete();
+		}
+		if (legal(x,y+1,cubeType,cubeTurn) == 0) {
+			stay(x,y,cubeType,cubeTurn);
+			newCube();
+			delete();
+		}
+		repaint();
+	}
+	
+	private void left() {
+		if (legal(x-1,y,cubeType,cubeTurn) == 1) {
+			x = x - 1;
+		}
+		repaint();
+	}
+	
+	private void right() {
+		if (legal(x+1,y,cubeType,cubeTurn) == 1) {
+			x = x + 1;
+		}
+		repaint();
+	}
+	
+	private void delete() {
+		int flag = 0;
+		for (int i = 0; i < 23; i++) {
+			for (int j = 0; j < 12; j++) {
+				// different
+				if (panel[i][j] ==1) {
+					flag++;
+					if (flag == 11) {
+						score += 10;
+						for (int k = i; k > 0; k--) {
+							for (int l = 0; l < 11; l++) {
+								panel[k][l] = panel[k-1][l];
+							}
+						}
+					}
+				}
+			}
+			flag = 0;
+		}
+	}
+	
+	private void stay(int x, int y, int cubeType, int cubeTurn) {
+		int flag = 0;
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j<4; j++) {
+				if (panel[x+i][y+j+1] == 0) {
+					panel[x+i][y+j+1] = shape[cubeType][cubeTurn][flag];
+				}
+				flag++;
+			}
+		}
+	}
+	
+	
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		for (int i = 0; i < 16; i++) {
+			g.fillRect((i%4+x)*10,(i/4+y+1)*10,10,10);
+		}
+		for (int i = 0; i < 23; i++) {
+			for (int j = 0; j < 12; j++) {
+				if (panel[i][j] == 1) {
+					g.fillRect(i*10, j*10, 10, 10);
+				}
+				if (panel[i][j] == 2) {
+					g.drawRect(i*10, j*10, 10, 10);
+				}
+			}
+		}
+		g.drawString("Score="+score, 125, 10);
+	}
 	public void keyReleased(KeyEvent arg0) {
 		// no use
 	}
 
 	public void keyTyped(KeyEvent arg0) {
 		// no use
+	}
+	
+	class TimerListener implements ActionListener {
+		public void actionPerformed (ActionEvent e) {
+			repaint();
+			if (legal(x+1,y,cubeType,cubeTurn) == 1) {
+				x++;
+				delete();
+			}
+			if (legal(x+1,y,cubeType,cubeTurn) == 0) {
+				stay (x,y,cubeType,cubeTurn);
+				delete();
+				newCube();
+			}
+		}
 	}
 
 }

@@ -1,7 +1,23 @@
-import us.tzheng.JTetris.JTFrame;
+import javax.swing.JFrame;
 
-public class JTetris {
+import us.tzheng.JTetris.JGame;
+
+public class JTetris extends JFrame {
+	
+	private static final int FRAME_WIDTH = 300;
+	private static final int FRAME_HEIGHT = 200;
+	
+	public JTetris() {
+		JGame game = new JGame();
+		addKeyListener(game);
+		add(game);
+	}
+	
 	public static void main(String[] args) {
-		JTFrame frame = new JTFrame();
+		JTetris frame = new JTetris();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.pack();
+		frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
+		frame.setVisible(true);
 	}
 }
