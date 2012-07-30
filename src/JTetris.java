@@ -4,8 +4,8 @@ import us.tzheng.JTetris.JGame;
 
 public class JTetris extends JFrame {
 	
-	private static final int FRAME_WIDTH = 300;
-	private static final int FRAME_HEIGHT = 200;
+	private static final int FRAME_WIDTH = 200;
+	private static final int FRAME_HEIGHT = 300;
 	
 	public JTetris() {
 		JGame game = new JGame();
