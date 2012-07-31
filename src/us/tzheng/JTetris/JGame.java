@@ -16,7 +16,7 @@ public class JGame extends JPanel implements KeyListener {
 	private int cubeTurn;
 	private int x;
 	private int y;
-	private int[][] panel = new int[23][12];
+	private int[][] panel = new int[13][23];
 	private int score;
     private final int shape[][][] = new int[][][] {
     	// i
@@ -56,29 +56,29 @@ public class JGame extends JPanel implements KeyListener {
         { 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0 } } };
     // Constructor
 	public JGame() {
+		newCube();
 		newPanel();
 		drawBoarder();
-		newCube();
 		Timer clock = new Timer(1000, new TimerListener());
 		clock.start();
 	}
 	// Initial Panel
 	private void newPanel() {
-		for (int i = 0; i < 23; i++) {
-			for (int j = 0; j < 12; j++) {
+		for (int i = 0; i < 12; i++) {
+			for (int j = 0; j < 22; j++) {
 				panel[i][j] = 0;
 			}
 		}
 	}
 	// Draw Boarder of Panel
 	private void drawBoarder() {
-		for (int i = 0; i < 23; i++) {
-			panel[i][0] = 2;
-			panel[i][11] = 2;
+		for (int i = 0; i < 22; i++) {
+			panel[0][i] = 2;
+			panel[11][i] = 2;
 		}
 		
 		for (int j = 0; j < 12; j++) {
-			panel [22][j] = 2;
+			panel[j][21] = 2;
 		}
 	}
 	// Create new cube
@@ -107,8 +107,8 @@ public class JGame extends JPanel implements KeyListener {
 	private int legal(int x, int y, int cubeType, int cubeTurn) {
 		for (int i = 0; i <4; i++) {
 			for (int j = 0; j<4; j++) {
-				if (((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + i][y + j + 1] == 1))
-						||((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + i][y + j + 1] == 2))) {
+				if (((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + j + 1][y + i] == 1))
+						||((shape[cubeType][cubeTurn][4 * i + j] == 1) && (panel[x + j + 1][y + i] == 2))) {
 					return 0;
 				}
 			}
@@ -171,16 +171,16 @@ public class JGame extends JPanel implements KeyListener {
 	
 	private void delete() {
 		int flag = 0;
-		for (int i = 0; i < 23; i++) {
+		for (int i = 0; i < 22; i++) {
 			for (int j = 0; j < 12; j++) {
 				// different
-				if (panel[i][j] ==1) {
+				if (panel[j][i] ==1) {
 					flag++;
-					if (flag == 11) {
+					if (flag == 10) {
 						score += 10;
 						for (int k = i; k > 0; k--) {
 							for (int l = 0; l < 11; l++) {
-								panel[k][l] = panel[k-1][l];
+								panel[l][k] = panel[l][k - 1];
 							}
 						}
 					}
@@ -193,9 +193,9 @@ public class JGame extends JPanel implements KeyListener {
 	private void stay(int x, int y, int cubeType, int cubeTurn) {
 		int flag = 0;
 		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j<4; j++) {
-				if (panel[x+i][y+j+1] == 0) {
-					panel[x+i][y+j+1] = shape[cubeType][cubeTurn][flag];
+			for (int j = 0; j < 4; j++) {
+				if (panel[x+j+1][y+i] == 0) {
+					panel[x+j+1][y+i] = shape[cubeType][cubeTurn][flag];
 				}
 				flag++;
 			}
@@ -206,10 +206,12 @@ public class JGame extends JPanel implements KeyListener {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		for (int i = 0; i < 16; i++) {
-			g.fillRect((i%4+x)*10,(i/4+y+1)*10,10,10);
+			if (shape[cubeType][cubeTurn][i] == 1) {
+				g.fillRect((i%4+x+1)*10,(i/4+y)*10,10,10);
+			}
 		}
-		for (int i = 0; i < 23; i++) {
-			for (int j = 0; j < 12; j++) {
+		for (int i = 0; i < 12; i++) {
+			for (int j = 0; j < 22; j++) {
 				if (panel[i][j] == 1) {
 					g.fillRect(i*10, j*10, 10, 10);
 				}
@@ -229,16 +231,21 @@ public class JGame extends JPanel implements KeyListener {
 	}
 	
 	class TimerListener implements ActionListener {
+		private int flag;
 		public void actionPerformed (ActionEvent e) {
 			repaint();
-			if (legal(x+1,y,cubeType,cubeTurn) == 1) {
-				x++;
+			if (legal(x,y+1,cubeType,cubeTurn) == 1) {
+				y++;
 				delete();
 			}
-			if (legal(x+1,y,cubeType,cubeTurn) == 0) {
-				stay (x,y,cubeType,cubeTurn);
-				delete();
-				newCube();
+			if (legal(x,y+1,cubeType,cubeTurn) == 0) {
+				if (flag == 1) {
+					stay (x,y,cubeType,cubeTurn);
+					delete();
+					newCube();
+					flag = 0;
+				}
+				flag = 1;
 			}
 		}
 	}
